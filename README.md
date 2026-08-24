@@ -1,4 +1,4 @@
-# Bite Arcade — 500+ Free Browser Games
+# Bite Arcade — 500+ free browser games — action, puzzle, racing, arcade, .io, multiplayer. Pure frontend.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live Site](https://img.shields.io/badge/website-bite--arcade.com-green)](https://bite-arcade.com)
