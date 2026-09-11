@@ -1,5 +1,5 @@
 /**
- * TylerArcade site management script v4
+ * TylerArcade site management script v5
  * Applies TylerArcade branding consistently across every page and manages ads.
  */
 (function() {
@@ -10,6 +10,7 @@
     return value
       .replace(/BiteArcade/gi, 'TylerArcade')
       .replace(/Bite Arcade/gi, 'TylerArcade')
+      .replace(/https?:\/\/bite-arcade\.com/gi, window.location.origin)
       .replace(/bite-arcade\.com/gi, window.location.host)
       .replace(/bitearcade/gi, 'tylerarcade');
   }
@@ -18,7 +19,6 @@
     var brand = 'TylerArcade';
     var accentBrand = '<span class="logo-accent">Arcade</span>';
 
-    // Header / logo.
     document.querySelectorAll('.logo-text').forEach(function(el) {
       el.innerHTML = 'Tyler' + accentBrand;
     });
@@ -31,12 +31,10 @@
       el.textContent = 'Play. Explore. Repeat.';
     });
 
-    // Footer and any remaining visible text nodes containing the old brand.
     document.querySelectorAll('.footer-bottom').forEach(function(el) {
       el.innerHTML = replaceBrand(el.innerHTML);
     });
 
-    // Document and SEO/social metadata.
     document.title = replaceBrand(document.title);
     document.querySelectorAll('meta').forEach(function(el) {
       var content = el.getAttribute('content');
@@ -48,25 +46,21 @@
       el.remove();
     });
 
-    // Update JSON-LD structured data without leaving stale BiteArcade URLs.
     document.querySelectorAll('script[type="application/ld+json"]').forEach(function(el) {
       try {
         var json = JSON.parse(el.textContent);
-        var serialized = JSON.stringify(json, function(key, value) {
+        el.textContent = JSON.stringify(json, function(key, value) {
           return typeof value === 'string' ? replaceBrand(value) : value;
         });
-        el.textContent = serialized;
       } catch (e) {
         el.textContent = replaceBrand(el.textContent);
       }
     });
 
-    // Remove old BiteArcade-specific network/social promotion rather than showing stale branding.
     document.querySelectorAll('.cross-site-banner').forEach(function(el) {
       el.style.display = 'none';
     });
 
-    // Give the page a TylerArcade favicon without requiring binary asset renames.
     var icon = document.querySelector('link[rel="icon"]');
     if (icon) {
       icon.type = 'image/svg+xml';
