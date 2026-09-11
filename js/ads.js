@@ -1,6 +1,6 @@
 /**
- * TylerArcade site management script v5
- * Applies TylerArcade branding consistently across every page and manages ads.
+ * TylerArcade site management script v6
+ * Applies TylerArcade branding, fixes game routes, and manages ads.
  */
 (function() {
   'use strict';
@@ -30,7 +30,6 @@
     document.querySelectorAll('.slogan').forEach(function(el) {
       el.textContent = 'Play. Explore. Repeat.';
     });
-
     document.querySelectorAll('.footer-bottom').forEach(function(el) {
       el.innerHTML = replaceBrand(el.innerHTML);
     });
@@ -70,6 +69,70 @@
     }
   }
 
+  // The catalog contains /play/<slug> routes, but this is a static site and those
+  // directories do not exist. Keep the public TylerArcade URL and open the real
+  // iDev.Games embed instead, so every game remains playable without a 404.
+  function getGameSlug(href) {
+    try {
+      var url = new URL(href, window.location.href);
+      if (url.origin !== window.location.origin) return '';
+      var match = url.pathname.match(/^\/play\/([^/]+)\/?$/i);
+      return match ? decodeURIComponent(match[1]) : '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function openGame(slug) {
+    if (!slug) return false;
+    var overlay = document.createElement('div');
+    overlay.id = 'tylerarcade-game-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:#050505;z-index:2147483646;display:flex;flex-direction:column;';
+
+    var bar = document.createElement('div');
+    bar.style.cssText = 'height:56px;min-height:56px;background:#111;border-bottom:2px solid #00ff88;display:flex;align-items:center;justify-content:space-between;padding:0 14px;box-sizing:border-box;';
+
+    var label = document.createElement('strong');
+    label.textContent = 'TylerArcade';
+    label.style.cssText = 'color:#f0f0f0;font:800 20px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+
+    var close = document.createElement('button');
+    close.type = 'button';
+    close.textContent = '✕ Close game';
+    close.setAttribute('aria-label', 'Close game');
+    close.style.cssText = 'background:#00ff88;color:#000;border:0;border-radius:7px;padding:9px 13px;font-weight:700;cursor:pointer;';
+
+    var frame = document.createElement('iframe');
+    frame.src = 'https://idev.games/embed/' + encodeURIComponent(slug);
+    frame.title = slug.replace(/[-_]+/g, ' ') + ' — TylerArcade';
+    frame.allow = 'autoplay; fullscreen; gamepad; microphone; camera; clipboard-read; clipboard-write';
+    frame.allowFullscreen = true;
+    frame.style.cssText = 'display:block;flex:1;width:100%;height:100%;border:0;background:#000;';
+
+    close.addEventListener('click', function() { overlay.remove(); document.body.style.overflow = ''; });
+    overlay.addEventListener('keydown', function(e) { if (e.key === 'Escape') close.click(); });
+    bar.appendChild(label);
+    bar.appendChild(close);
+    overlay.appendChild(bar);
+    overlay.appendChild(frame);
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    close.focus();
+    return true;
+  }
+
+  function installGameRouting() {
+    document.addEventListener('click', function(event) {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      var link = event.target.closest ? event.target.closest('a[href]') : null;
+      if (!link) return;
+      var slug = getGameSlug(link.href);
+      if (!slug) return;
+      event.preventDefault();
+      openGame(slug);
+    }, false);
+  }
+
   var DECEPTIVE_KEYWORDS = /download|tap.*proceed|click.*continue|ready|virus|scan|warning|your.*phone|install|free.*gift|winner|congratulations|subscribe|notification|claim.*prize|you.*won|selected.*reward/i;
   var DECEPTIVE_IMAGES = /btn_download|btn_install|cta_button|download_now|get_it_now|install_now|claim_reward/i;
 
@@ -96,8 +159,7 @@
       var top = style.top;
       var left = style.left;
       var transform = style.transform;
-      var isCentered = (top === '50%' && left === '50%') ||
-        /translate\(-50%,\s*-50%\)|translate\(-50%\)/.test(transform);
+      var isCentered = (top === '50%' && left === '50%') || /translate\(-50%,\s*-50%\)|translate\(-50%\)/.test(transform);
 
       if (isCentered && z >= 20000) {
         el.style.setProperty('display', 'none', 'important');
@@ -118,6 +180,7 @@
 
   function run() {
     applyBranding();
+    installGameRouting();
     handleAds();
   }
 
