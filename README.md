@@ -1,9 +1,8 @@
-# Bite Arcade — 500+ free browser games — action, puzzle, racing, arcade, .io, multiplayer. Pure frontend.
+# TylerArcade — 500+ free browser games — action, puzzle, racing, arcade, .io, multiplayer. Pure frontend.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Live Site](https://img.shields.io/badge/website-bite--arcade.com-green)](https://bite-arcade.com)
 
-A large, open-source library of free online browser games — from quick hypercasual bites to deeper adventure and multiplayer titles. Everything runs on pure frontend code: no frameworks required, no backend, no user tracking.
+TylerArcade is a large, open-source library of free online browser games — from quick hypercasual games to deeper adventure and multiplayer titles. Everything runs on pure frontend code: no frameworks required, no backend, no user tracking.
 
 ## ✨ Features
 
@@ -26,14 +25,14 @@ A large, open-source library of free online browser games — from quick hyperca
 
 ## 🚀 How to Use
 
-Play online at [bite-arcade.com](https://bite-arcade.com/), or run it locally:
+Clone this repository and run it locally:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/bite-arcade/bite-arcade.git
+git clone https://github.com/TylerDavidMckeown/TylerArcade.git
 
 # 2. Enter the directory
-cd bite-arcade
+cd TylerArcade
 
 # 3. Serve the static files (any static server works)
 python3 -m http.server 8080
@@ -66,7 +65,7 @@ Beyond publishing, we build free, privacy-first digital tools and entertainment 
 
 - [hearthveilpress.com](https://hearthveilpress.com) — Official publisher site with free chapters, book launches, and community updates
 - [PrivacyPDF.org](https://privacypdf.org) — A free, privacy-first online PDF toolkit (compress, merge, convert) that runs entirely in your browser with zero data uploads
-- [Bite Arcade](https://bite-arcade.com) — 500+ free browser games across action, puzzle, racing, arcade, and casual genres
+- **TylerArcade** — 500+ free browser games across action, puzzle, racing, arcade, and casual genres
 - [Tiny Arcade](https://tiny-arcade.com) — 257+ handpicked retro and pixel-art arcade games
 
 ## 🤝 Contributing
