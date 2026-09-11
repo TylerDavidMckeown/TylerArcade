@@ -1,18 +1,24 @@
 /**
- * TylerArcade site management script v3
- * - Applies TylerArcade branding consistently across every page
- * - Blocks deceptive popups (fake download/virus/winner modals)
- * - Repositions floating banner ads to page bottom
- * - NO window.open interception (preserves legitimate game functionality)
+ * TylerArcade site management script v4
+ * Applies TylerArcade branding consistently across every page and manages ads.
  */
 (function() {
   'use strict';
+
+  function replaceBrand(value) {
+    if (!value) return value;
+    return value
+      .replace(/BiteArcade/gi, 'TylerArcade')
+      .replace(/Bite Arcade/gi, 'TylerArcade')
+      .replace(/bite-arcade\.com/gi, window.location.host)
+      .replace(/bitearcade/gi, 'tylerarcade');
+  }
 
   function applyBranding() {
     var brand = 'TylerArcade';
     var accentBrand = '<span class="logo-accent">Arcade</span>';
 
-    // Replace visible header branding and remove the old logo artwork.
+    // Header / logo.
     document.querySelectorAll('.logo-text').forEach(function(el) {
       el.innerHTML = 'Tyler' + accentBrand;
     });
@@ -25,21 +31,34 @@
       el.textContent = 'Play. Explore. Repeat.';
     });
 
-    // Replace footer branding.
+    // Footer and any remaining visible text nodes containing the old brand.
     document.querySelectorAll('.footer-bottom').forEach(function(el) {
-      el.innerHTML = el.innerHTML.replace(/BiteArcade/gi, brand).replace(/Bite Arcade/gi, brand);
+      el.innerHTML = replaceBrand(el.innerHTML);
     });
 
-    // Update document and social/search metadata.
-    document.title = document.title.replace(/BiteArcade|Bite Arcade/gi, brand);
-    document.querySelectorAll('meta[property="og:site_name"], meta[name="application-name"]').forEach(function(el) {
-      el.setAttribute('content', brand);
+    // Document and SEO/social metadata.
+    document.title = replaceBrand(document.title);
+    document.querySelectorAll('meta').forEach(function(el) {
+      var content = el.getAttribute('content');
+      if (content && /BiteArcade|Bite Arcade|bite-arcade\.com|bitearcade/i.test(content)) {
+        el.setAttribute('content', replaceBrand(content));
+      }
     });
-    document.querySelectorAll('meta[property="og:title"], meta[name="twitter:title"]').forEach(function(el) {
-      el.setAttribute('content', el.getAttribute('content').replace(/BiteArcade|Bite Arcade/gi, brand));
+    document.querySelectorAll('link[rel="canonical"], link[rel="preload"][href*="bite-arcade"]').forEach(function(el) {
+      el.remove();
     });
-    document.querySelectorAll('meta[property="og:description"], meta[name="twitter:description"], meta[name="description"]').forEach(function(el) {
-      el.setAttribute('content', el.getAttribute('content').replace(/BiteArcade|Bite Arcade/gi, brand));
+
+    // Update JSON-LD structured data without leaving stale BiteArcade URLs.
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function(el) {
+      try {
+        var json = JSON.parse(el.textContent);
+        var serialized = JSON.stringify(json, function(key, value) {
+          return typeof value === 'string' ? replaceBrand(value) : value;
+        });
+        el.textContent = serialized;
+      } catch (e) {
+        el.textContent = replaceBrand(el.textContent);
+      }
     });
 
     // Remove old BiteArcade-specific network/social promotion rather than showing stale branding.
@@ -47,24 +66,22 @@
       el.style.display = 'none';
     });
 
-    // Give the page a TylerArcade favicon without requiring a binary asset rename.
+    // Give the page a TylerArcade favicon without requiring binary asset renames.
     var icon = document.querySelector('link[rel="icon"]');
     if (icon) {
       icon.type = 'image/svg+xml';
       icon.href = 'data:image/svg+xml,' + encodeURIComponent(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#0a0a0a"/><path fill="#00ff88" d="M12 16h40v9H37v23h-10V25H12z"/><circle cx="49" cy="48" r="5" fill="#00ff88"/></svg>'
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#0a0a0a"/><path fill="#00ff88" d="M12 16h40v9H37v23H27V25H12z"/><circle cx="49" cy="48" r="5" fill="#00ff88"/></svg>'
       );
     }
   }
 
-  // Keywords that indicate a deceptive/ad popup
   var DECEPTIVE_KEYWORDS = /download|tap.*proceed|click.*continue|ready|virus|scan|warning|your.*phone|install|free.*gift|winner|congratulations|subscribe|notification|claim.*prize|you.*won|selected.*reward/i;
   var DECEPTIVE_IMAGES = /btn_download|btn_install|cta_button|download_now|get_it_now|install_now|claim_reward/i;
 
   function isDeceptive(el) {
     var text = (el.innerText || el.textContent || '').slice(0, 300);
     if (DECEPTIVE_KEYWORDS.test(text)) return true;
-
     var imgs = el.querySelectorAll('img');
     for (var j = 0; j < imgs.length; j++) {
       var src = (imgs[j].src || '') + (imgs[j].alt || '');
@@ -116,7 +133,6 @@
     run();
   }
 
-  // Ads load asynchronously; keep branding and ad handling resilient to late DOM changes.
   var intervalCount = 0;
   var intervalId = setInterval(function() {
     applyBranding();
